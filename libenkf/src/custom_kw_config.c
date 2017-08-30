@@ -191,8 +191,10 @@ stringlist_type * custom_kw_config_get_keys(const custom_kw_config_type * config
 
 static bool custom_kw_config_setup__(custom_kw_config_type * config, const char * result_file) {
     FILE * stream = util_fopen__(result_file, "r");
+    fprintf(stdout, " ****** %s: result_file = %s.\n", __func__, result_file);
     if (stream != NULL) {
         bool read_ok = true;
+        fprintf(stdout, " ****** %s: read_ok = %d.\n", __func__, read_ok);
         config->key_definition_file = util_alloc_string_copy(result_file);
 
         int counter = 0;
@@ -213,7 +215,7 @@ static bool custom_kw_config_setup__(custom_kw_config_type * config, const char 
                 hash_insert_int(config->custom_key_types, key, util_sscanf_double(value, NULL));
             }
         }
-
+        fprintf(stdout, " ****** %s: read_ok = %d.\n", __func__, read_ok);
         fclose(stream);
         return read_ok;
     }
@@ -266,22 +268,27 @@ static bool custom_kw_config_read_data__(const custom_kw_config_type * config, c
 
 bool custom_kw_config_parse_result_file(custom_kw_config_type * config, const char * result_file, stringlist_type * result) {
     bool read_ok = true;
-
+    fprintf(stdout, "\n\n\nXXXXXXXXXXXXX %s: result_file = %s.\n", __func__, result_file);
     // if config->result_file is NULL then the CustomKWConfig was made dynamically
     // for storing data manually and not as part of a forward model output.
     if(config->result_file != NULL) {
+        
         pthread_rwlock_wrlock(&config->rw_lock);
         if (config->undefined) {
+            fprintf(stdout, "1XXXXXXXXXXX %s: read_ok = %d.\n", __func__, read_ok);
             read_ok = custom_kw_config_setup__(config, result_file);
+            fprintf(stdout, "2XXXXXXXXXXX %s: read_ok = %d.\n", __func__, read_ok);
             if (read_ok) {
                 config->undefined = false;
             }
         }
+        fprintf(stdout, "3XXXXXXXXXXX %s: read_ok = %d.\n", __func__, read_ok);
         pthread_rwlock_unlock(&config->rw_lock);
 
         if (read_ok) {
             read_ok = custom_kw_config_read_data__(config, result_file, result);
         }
+        fprintf(stdout, "4XXXXXXXXXXX %s: read_ok = %d.\n", __func__, read_ok);
     }
 
     return read_ok;
